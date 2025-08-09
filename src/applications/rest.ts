@@ -4,15 +4,20 @@ import { redisClient } from '@/libraries/redis.js';
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono/quick';
 import qrcode from 'qrcode';
+import ejs from 'ejs';
+import { listObjects } from '@/storage-objects/list-object.js';
 
 export const RestApi = async () => {
 	const app = new Hono();
 
-	app.get('/', (ctx) =>
-		ctx.json({
-			message: 'Hello World',
-		}),
-	);
+	app.get('/images', async (ctx) => {
+		const images = await listObjects('images/');
+		const result = await ejs.renderFile('views/images.ejs', {
+			images: images ?? [],
+		});
+
+		return ctx.html(result);
+	});
 
 	app.get('/qr', async (ctx) => {
 		const currentQr = await redisClient.get('sangmata-qr');

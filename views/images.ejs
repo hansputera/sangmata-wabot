@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Minimalist Image Gallery — Tanpa Thumbnail</title>
+  <style>
+    :root{--bg:#fafafa;--card:#fff;--muted:#6b7280;--gap:12px;--radius:12px}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;background:var(--bg);color:#111827}
+    .wrap{max-width:1100px;margin:28px auto;padding:20px}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    h1{font-size:18px;margin:0;font-weight:600}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+
+    /* grid */
+    .gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--gap)}
+    .card{background:var(--card);border-radius:var(--radius);overflow:hidden;position:relative;box-shadow:0 1px 0 rgba(16,24,40,0.03),0 6px 18px rgba(15,23,42,0.04)}
+    .card img{width:100%;height:260px;object-fit:cover;display:block;transition:transform .35s ease}
+    .card:hover img{transform:scale(1.03)}
+    .caption{padding:10px 12px;font-size:13px;color:var(--muted)}
+    .caption .title{display:block;font-weight:600;color:#111827;margin-bottom:6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+    .caption .footer-link{font-size:12px;color:var(--muted);text-decoration:none;border-radius:8px;padding:6px 8px;background:rgba(250,250,250,0.6)}
+
+    /* lightbox */
+    .lightbox{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.62);z-index:9999;padding:20px}
+    .lightbox.open{display:flex}
+    .lightbox-content{max-width:1100px;width:100%;max-height:90vh;position:relative;display:flex;flex-direction:column;align-items:center;gap:12px}
+    .lightbox-figure{display:flex;flex-direction:column;align-items:center;gap:10px}
+    .lightbox img{max-width:100%;max-height:70vh;border-radius:8px;box-shadow:0 10px 30px rgba(2,6,23,0.6)}
+    .lb-meta{color:#fff;font-size:13px;text-align:center}
+    .lb-meta a{color:#dbeafe;text-decoration:underline}
+
+    .btn{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.92);display:grid;place-items:center;cursor:pointer;font-weight:700;border:0}
+    .nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.9);width:44px;height:44px;border-radius:10px;display:grid;place-items:center;cursor:pointer;border:0}
+    .nav-prev{left:8px}
+    .nav-next{right:8px}
+
+    @media (max-width:480px){.card img{height:160px}.caption{font-size:12px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Minimalist Gallery</h1>
+        <p class="lead">Setiap kartu menampilkan gambar penuh (tanpa thumbnail). Klik untuk memperbesar dan lihat footnote/link sumber.</p>
+      </div>
+      <div style="color:var(--muted);font-size:13px"><%= images.length %> gambar</div>
+    </header>
+
+    <main>
+      <div id="gallery" class="gallery" aria-live="polite"></div>
+    </main>
+  </div>
+
+  <!-- lightbox -->
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="lightbox-content">
+      <button id="closeBtn" class="btn" title="Tutup">✕</button>
+      <button id="prevBtn" class="nav-btn nav-prev" title="Sebelumnya">◀</button>
+      <div class="lightbox-figure">
+        <img id="lightboxImg" src="" alt=""/>
+        <div id="lbMeta" class="lb-meta"></div>
+      </div>
+      <button id="nextBtn" class="nav-btn nav-next" title="Berikutnya">▶</button>
+    </div>
+  </div>
+
+  <script>
+    const IMAGES = <%- JSON.stringify(images.map(img => ({
+      src: `https://sangmata.hanifu.id/${img.Key}`,
+      title: `${img.Owner.DisplayName}`,
+      footer: `https://sangmata.hanifu.id/${img.Key}`,
+    }))) %>
+
+    const gallery = document.getElementById('gallery');
+
+    IMAGES.forEach((imgObj, idx)=>{
+      const fig = document.createElement('figure');
+      fig.className='card';
+      fig.innerHTML = `
+        <img loading="lazy" data-index="${idx}" src="${imgObj.src}" alt="${imgObj.title}">
+        <figcaption class="caption">
+          <span class="title">${imgObj.title}</span>
+          <a class="footer-link" href="${imgObj.footer}" target="_blank" rel="noopener">Sumber / Footnote</a>
+        </figcaption>
+      `;
+      gallery.appendChild(fig);
+    });
+
+    // lightbox elements
+    const lightbox = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightboxImg');
+    const lbMeta = document.getElementById('lbMeta');
+    const closeBtn = document.getElementById('closeBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    let current = 0;
+
+    function openLightbox(index){
+      current = index;
+      const item = IMAGES[current];
+      lbImg.src = item.src;
+      lbImg.alt = item.title;
+      // tampilkan title + footnote link di bawah gambar
+      lbMeta.innerHTML = `${item.title} — <a href="${item.footer}" target="_blank" rel="noopener">${item.footer}</a>`;
+      lightbox.classList.add('open');
+      lightbox.setAttribute('aria-hidden','false');
+      document.body.style.overflow='hidden';
+    }
+
+    function closeLightbox(){
+      lightbox.classList.remove('open');
+      lightbox.setAttribute('aria-hidden','true');
+      lbImg.src='';
+      lbMeta.textContent='';
+      document.body.style.overflow='';
+    }
+
+    function showNext(){ current = (current+1) % IMAGES.length; openLightbox(current); }
+    function showPrev(){ current = (current-1+IMAGES.length) % IMAGES.length; openLightbox(current); }
+
+    // buka lightbox saat klik gambar
+    gallery.addEventListener('click', (e)=>{
+      const img = e.target.closest('img');
+      if(!img) return;
+      const idx = Number(img.dataset.index);
+      openLightbox(idx);
+    });
+
+    closeBtn.addEventListener('click', closeLightbox);
+    nextBtn.addEventListener('click', showNext);
+    prevBtn.addEventListener('click', showPrev);
+
+    // keyboard
+    window.addEventListener('keydown', (e)=>{
+      if(lightbox.classList.contains('open')){
+        if(e.key === 'Escape') closeLightbox();
+        if(e.key === 'ArrowRight') showNext();
+        if(e.key === 'ArrowLeft') showPrev();
+      }
+    });
+
+    // klik overlay untuk tutup
+    lightbox.addEventListener('click', (e)=>{ if(e.target === lightbox) closeLightbox(); });
+  </script>
+</body>
+</html>

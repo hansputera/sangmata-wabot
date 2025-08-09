@@ -61,7 +61,7 @@ export const upsertMessagesHandler = async (
 			msg.message?.viewOnceMessageV2?.message?.imageMessage?.caption?.trim() ??
 			msg.message?.viewOnceMessageV2?.message?.videoMessage?.caption?.trim();
 
-		if (messages[0].message?.editedMessage) {
+		if (messages[0].message?.editedMessage && text?.length) {
 			const row = await db.query.messages.findFirst({
 				where: (msgs, { eq }) => eq(msgs.id, messageId),
 			});
@@ -79,6 +79,10 @@ export const upsertMessagesHandler = async (
 					.where(eq(messagesSchema.id, messageId));
 			}
 		} else {
+			if (!text?.length) {
+				return;
+			}
+
 			await db.insert(messagesSchema).values({
 				id: messageId,
 				chatJid: msg.key.remoteJid ?? '',
