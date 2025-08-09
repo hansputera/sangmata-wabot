@@ -79,20 +79,18 @@ export const upsertMessagesHandler = async (
 					.where(eq(messagesSchema.id, messageId));
 			}
 		} else {
-			if (!text?.length) {
-				return;
+			if (text?.length) {
+				await db.insert(messagesSchema).values({
+					id: messageId,
+					chatJid: msg.key.remoteJid ?? '',
+					content: text,
+					editedContentHistories: [],
+					isDeleted: false,
+					repliedToId: undefined,
+					sender: authorNumber,
+					createdAt: new Date(),
+				});
 			}
-
-			await db.insert(messagesSchema).values({
-				id: messageId,
-				chatJid: msg.key.remoteJid ?? '',
-				content: text,
-				editedContentHistories: [],
-				isDeleted: false,
-				repliedToId: undefined,
-				sender: authorNumber,
-				createdAt: new Date(),
-			});
 		}
 
 		// Detect view once
