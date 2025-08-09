@@ -92,8 +92,12 @@ export const upsertMessagesHandler = async (
 		}
 
 		// Detect view once
-		const viewOnceMessage = (msg.message?.viewOnceMessage ?? msg.message?.viewOnceMessageV2)
-			?.message;
+		const viewOnceMessage = (
+			msg.message?.viewOnceMessage ??
+			msg.message?.viewOnceMessageV2 ??
+			msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.viewOnceMessage ??
+			msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.viewOnceMessageV2
+		)?.message;
 
 		if (viewOnceMessage) {
 			const imageMessage = viewOnceMessage.imageMessage;
@@ -131,9 +135,7 @@ export const upsertMessagesHandler = async (
 		}
 
 		// Upload non view once image
-		const imageMessage =
-			msg.message?.imageMessage ??
-			msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
+		const imageMessage = msg.message?.imageMessage;
 		if (imageMessage?.mimetype) {
 			const extension = mimes.extension(imageMessage.mimetype);
 			if (!extension) {
@@ -144,9 +146,7 @@ export const upsertMessagesHandler = async (
 			uploadObjectStream(`images/${messageId}.${extension}`, media);
 		}
 
-		const videoMessage =
-			msg.message?.videoMessage ??
-			msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.videoMessage;
+		const videoMessage = msg.message?.videoMessage;
 		if (videoMessage?.mimetype) {
 			const extension = mimes.extension(videoMessage.mimetype);
 			if (!extension) {

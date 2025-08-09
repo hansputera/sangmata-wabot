@@ -40,7 +40,7 @@
     "@hapi/boom": "^10.0.1",
     "@hono/node-server": "^1.18.1",
     "avvio": "^9.1.0",
-    "baileys": "^6.7.16",
+    "baileys": "^6.7.18",
     "better-sqlite3": "^12.2.0",
     "consola": "^3.4.2",
     "drizzle-orm": "^0.44.4",
