@@ -1,0 +1,32 @@
+services:
+  redis:
+    image: redis:alpine3.22
+    restart: always
+    ports:
+      - 6700:6379
+    command: redis-server --save 20 1 --loglevel warning --requirepass HelloWorld
+    volumes:
+      - sangmata-cache:/data:rw
+    networks:
+      - sangmata-network
+  
+  sangmata:
+    build: .
+    ports:
+      - "4000:4000"
+    volumes:
+      - sangmata-bot:/app/sessions
+    environment:
+      - SESSIONS_DIR=/app/sessions
+      - REDIS_URI=redis://:HelloWorld@redis:6379
+      - PORT=4000
+    restart: unless-stopped
+    networks:
+      - sangmata-network
+
+volumes:
+  sangmata-cache:
+  sangmata-bot:
+
+networks:
+  sangmata-network:

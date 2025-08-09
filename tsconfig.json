@@ -3,7 +3,7 @@
         "allowJs": true,
         "allowSyntheticDefaultImports": true,
         "target": "ESNext",
-        "module": "ESNext",
+        "module": "nodenext",
         "strictNullChecks": true,
         "noImplicitAny": true,
         "skipLibCheck": true,

@@ -1,19 +1,19 @@
 {
-  "name": "project-name-here",
+  "name": "sangmata-wabot",
   "version": "0.0.1",
-  "description": "project description here",
+  "description": "SangMata WhatsApp Bot",
   "main": "./dist/index.js",
   "scripts": {
     "prepare": "node preinstall.js --max-old-space-size=10M",
     "lint": "biome lint --write ./src",
     "format": "biome format --write ./src",
     "build": "tsup",
-    "hook": "node hook.js --max-old-space-size=50M"
+    "hook": "node hook.js --max-old-space-size=50M",
+    "start": "dotenvx run -- node .",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
   },
   "type": "module",
-  "keywords": [
-    "project keywords"
-  ],
   "author": {
     "name": "Hanif Dwy Putra S",
     "email": "hanifdwyputrasembiring@gmail.com"
@@ -21,12 +21,33 @@
   "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "1.8.3",
-    "@swc/core": "^1.7.23",
-    "@types/node": "^20.16.5",
+    "@dotenvx/dotenvx": "^1.48.4",
+    "@swc/core": "^1.13.3",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/mime-types": "^3.0.1",
+    "@types/node": "^20.19.10",
+    "@types/qrcode": "^1.5.5",
+    "drizzle-kit": "^0.31.4",
     "husky": "^8.0.3",
     "is-ci": "^3.0.1",
     "is-git-dirty": "^2.0.2",
-    "tsup": "^8.2.4",
-    "typescript": "^5.5.4"
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.864.0",
+    "@aws-sdk/lib-storage": "^3.864.0",
+    "@hapi/boom": "^10.0.1",
+    "@hono/node-server": "^1.18.1",
+    "avvio": "^9.1.0",
+    "baileys": "^6.7.16",
+    "better-sqlite3": "^12.2.0",
+    "consola": "^3.4.2",
+    "drizzle-orm": "^0.44.4",
+    "envalid": "^8.1.0",
+    "hono": "^4.9.0",
+    "ioredis": "^5.7.0",
+    "mime-types": "^3.0.1",
+    "qrcode": "^1.5.4"
   }
 }

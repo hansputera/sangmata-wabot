@@ -1,0 +1,8 @@
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+  - '@swc/core'
+  - baileys
+  - better-sqlite3
+  - esbuild
+  - protobufjs
+  - sharp
