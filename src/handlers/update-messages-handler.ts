@@ -28,6 +28,7 @@ export const updateMessagesHandler = async (messages: WAMessageUpdate[]) => {
 	const text =
 		msg.message?.conversation?.trim() ??
 		msg.message?.extendedTextMessage?.text?.trim() ??
+		msg.message?.extendedTextMessage?.text?.trim() ??
 		msg.message?.imageMessage?.caption?.trim() ??
 		msg.message?.documentMessage?.caption?.trim() ??
 		msg.message?.videoMessage?.caption?.trim() ??

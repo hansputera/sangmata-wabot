@@ -69,9 +69,9 @@
 
   <script>
     const IMAGES = <%- JSON.stringify(images.map(img => ({
-      src: `https://sangmata.hanifu.id/${img.Key}`,
-      title: `${img.Owner.DisplayName}`,
-      footer: `https://sangmata.hanifu.id/${img.Key}`,
+      src: new URL(`./${img.Key}`, img.bucketUrl).href,
+      title: img.Owner.DisplayName,
+      footer: new URL(`./${img.Key}`, img.bucketUrl).href,
     }))) %>
 
     const gallery = document.getElementById('gallery');

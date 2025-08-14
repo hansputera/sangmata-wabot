@@ -1,0 +1,1 @@
+ALTER TABLE `messages` ADD `isGroup` integer DEFAULT false;

@@ -5,6 +5,7 @@ import mimes from 'mime-types';
 import { WAProto, downloadContentFromMessage, type WAMessage, type makeWASocket } from 'baileys';
 import consola from 'consola';
 import { eq } from 'drizzle-orm';
+import { configEnv } from '@/config/env.js';
 
 export const upsertMessagesHandler = async (
 	messages: WAMessage[],
@@ -47,6 +48,9 @@ export const upsertMessagesHandler = async (
 			return;
 		}
 
+		const isGroup = msg.key.remoteJid?.endsWith('@g.us') ?? false;
+		const ownerLids = configEnv.OWNER_LIDS.split(',').map((lid) => lid.trim());
+
 		const text =
 			msg.message?.conversation?.trim() ??
 			msg.message?.extendedTextMessage?.text?.trim() ??
@@ -87,21 +91,27 @@ export const upsertMessagesHandler = async (
 					editedContentHistories: [],
 					isDeleted: false,
 					repliedToId: undefined,
-					sender: authorNumber,
+					sender: authorNumber.concat(' | ', msg.pushName ?? 'Unknown'),
+					isGroup,
 					createdAt: new Date(),
 				});
 			}
 		}
 
 		// Detect view once
-		const viewOnceMessage = (
-			msg.message?.viewOnceMessage ??
-			msg.message?.viewOnceMessageV2 ??
-			msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.viewOnceMessage ??
-			msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.viewOnceMessageV2
-		)?.message;
+		const viewOnceMessage =
+			(
+				msg.message?.viewOnceMessage ??
+				msg.message?.viewOnceMessageV2 ??
+				msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.viewOnceMessage ??
+				msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.viewOnceMessageV2
+			)?.message ?? msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
 
 		if (viewOnceMessage) {
+			const viewOnceMessageId =
+				msg.message?.extendedTextMessage?.contextInfo?.stanzaId ?? messageId;
+			let path = '';
+
 			const imageMessage = viewOnceMessage.imageMessage;
 			if (imageMessage?.mimetype) {
 				const extension = mimes.extension(imageMessage.mimetype);
@@ -110,7 +120,8 @@ export const upsertMessagesHandler = async (
 				}
 
 				const media = await downloadContentFromMessage(imageMessage, 'image');
-				uploadObjectStream(`images/${messageId}.${extension}`, media);
+				uploadObjectStream(`images/${viewOnceMessageId}.${extension}`, media);
+				path = `images/${viewOnceMessageId}.${extension}`;
 			}
 
 			const videoMessage = viewOnceMessage.videoMessage;
@@ -121,7 +132,8 @@ export const upsertMessagesHandler = async (
 				}
 
 				const media = await downloadContentFromMessage(videoMessage, 'video');
-				uploadObjectStream(`videos/${messageId}.${extension}`, media);
+				uploadObjectStream(`videos/${viewOnceMessageId}.${extension}`, media);
+				path = `videos/${viewOnceMessageId}.${extension}`;
 			}
 
 			const audioMessage = viewOnceMessage.audioMessage;
@@ -132,7 +144,20 @@ export const upsertMessagesHandler = async (
 				}
 
 				const media = await downloadContentFromMessage(audioMessage, 'audio');
-				uploadObjectStream(`audios/${messageId}.${extension}`, media);
+				uploadObjectStream(`audios/${viewOnceMessageId}.${extension}`, media);
+				path = `videos/${viewOnceMessageId}.${extension}`;
+			}
+
+
+			if (isGroup && ownerLids.includes(authorNumber)) {
+				if (text === '.testrvo')
+				{
+					await socket.sendMessage(msg.key.remoteJid ?? '', {
+						text: new URL(`./${path}`, configEnv.S3_URL).href,
+					}, {
+						quoted: msg,
+					});
+				}
 			}
 		}
 

@@ -13,7 +13,11 @@ export const RestApi = async () => {
 	app.get('/images', async (ctx) => {
 		const images = await listObjects('images/');
 		const result = await ejs.renderFile('views/images.ejs', {
-			images: images ?? [],
+			images:
+				images?.map((img) => ({
+					...img,
+					bucketUrl: configEnv.S3_URL,
+				})) ?? [],
 		});
 
 		return ctx.html(result);

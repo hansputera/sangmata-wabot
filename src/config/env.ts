@@ -11,7 +11,9 @@ export const configEnv = cleanEnv(process.env, {
 	S3_BUCKET: str(),
 	S3_ACCESS_KEY: str(),
 	S3_SECRET_KEY: str(),
+	S3_URL: url(),
 
+	OWNER_LIDS: str(),
 	SQLITE_DATABASE_URL: str(),
 
 	TTL_CACHE_GROUPS: num({

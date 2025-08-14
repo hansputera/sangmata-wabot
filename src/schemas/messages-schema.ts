@@ -20,6 +20,9 @@ export const messages = sqliteTable(
 		createdAt: integer({
 			mode: 'timestamp',
 		}).default(sql`CURRENT_TIMESTAMP`),
+		isGroup: integer({
+			mode: 'boolean',
+		}).default(false),
 	},
 	(table) => [index('id_idx').on(table.id)],
 );

@@ -4,7 +4,10 @@ import { Upload } from '@aws-sdk/lib-storage';
 import consola from 'consola';
 import type { Transform } from 'node:stream';
 
-export const uploadObjectStream = async (path: string, stream: Transform) => {
+export const uploadObjectStream = async (
+	path: string,
+	stream: Transform,
+) => {
 	try {
 		const s3Upload = new Upload({
 			client: s3Client,
